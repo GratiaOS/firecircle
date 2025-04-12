@@ -94,34 +94,25 @@ export default function Circle() {
     }
   };
 
-  const handleSpeak = (text) => {
+  const handleSpeak = (text, ambient) => {
     if ('speechSynthesis' in window) {
       const synth = window.speechSynthesis;
 
       const speak = () => {
         const voices = synth.getVoices();
-
         const sacredVoice =
-          voices.find((v) => v.name.toLowerCase().includes('google uk english female')) ||
-          voices.find((v) => v.name.toLowerCase().includes('english') && v.name.toLowerCase().includes('female')) ||
-          voices.find((v) => v.lang === 'en-GB') ||
-          voices.find((v) => v.lang === 'en-US') ||
-          voices[0];
+          voices.find((v) => v.name === 'Google UK English Female') ||
+          voices.find((v) => v.name === 'Shelley (English (United Kingdom))') ||
+          voices.find((v) => v.name === 'Samantha') || // soft fallback
+          voices[0]; // absolute fallback
 
-        const length = text.length;
         const rate = 0.85;
-        const pitch = length < 80 ? 1.2 : length > 200 ? 0.95 : 1;
-
-        const ambient = new Audio('https://github.com/razvantirboaca/firecircle/raw/refs/heads/main/public/staring-at-the-night-sky.mp3');
-        ambient.loop = true;
-        ambient.volume = 0.25;
+        const pitch = text.length < 80 ? 1.2 : text.length > 200 ? 0.95 : 1;
 
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.voice = sacredVoice;
         utterance.rate = rate;
         utterance.pitch = pitch;
-
-        ambient.play().catch(() => console.warn('Ambient sound blocked'));
 
         setTimeout(() => {
           synth.cancel();
@@ -131,21 +122,20 @@ export default function Circle() {
 
         utterance.onend = () => {
           setTimeout(() => {
-            ambient.pause();
-            ambient.currentTime = 0;
+            if (ambient) {
+              ambient.pause();
+              ambient.currentTime = 0;
+            }
             setGlowingId(null);
           }, 1000);
         };
       };
 
-      // Force voice population if empty
       if (synth.getVoices().length === 0) {
         synth.onvoiceschanged = speak;
       } else {
         speak();
       }
-    } else {
-      alert('Firewhispers are not supported in this browser.');
     }
   };
 
@@ -205,7 +195,23 @@ export default function Circle() {
                 )}
 
                 <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
-                  <button onClick={() => handleSpeak(ember.text)} className="text-sm text-amber-700 hover:underline">
+                  <button
+                    onClick={() => {
+                      const ambient = new Audio('https://firecircle.space/staring-at-the-night-sky.mp3');
+                      ambient.loop = true;
+                      ambient.volume = 0.25;
+
+                      ambient
+                        .play()
+                        .then(() => {
+                          handleSpeak(ember.text, ambient);
+                        })
+                        .catch(() => {
+                          console.warn('Ambient blocked');
+                          handleSpeak(ember.text); // still whisper without ambient
+                        });
+                    }}
+                    className="text-sm text-amber-700 hover:underline">
                     🔊 Firewhisper
                   </button>
 
