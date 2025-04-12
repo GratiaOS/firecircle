@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { db } from './firebase';
 import { doc, updateDoc, increment, getDoc, setDoc, addDoc, collection, serverTimestamp, query, orderBy, onSnapshot } from 'firebase/firestore';
 import './index.css';
+import { Analytics } from '@vercel/analytics/react';
 
 export default function Circle() {
   const [message, setMessage] = useState('');
@@ -227,6 +228,7 @@ export default function Circle() {
           </ul>
         </div>
       )}
+      <Analytics />
     </div>
   );
 }

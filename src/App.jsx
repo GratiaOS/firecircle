@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import './index.css';
+import { Analytics } from '@vercel/analytics/react';
 
 export default function App() {
   return (
@@ -19,6 +20,7 @@ export default function App() {
         </Link>
       </div>
       <div className="absolute bottom-4 text-xs text-amber-600 opacity-60">firecircle.space — Harmony in creation</div>
+      <Analytics />
     </main>
   );
 }
