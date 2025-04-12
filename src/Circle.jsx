@@ -112,7 +112,7 @@ export default function Circle() {
         const rate = 0.85;
         const pitch = length < 80 ? 1.2 : length > 200 ? 0.95 : 1;
 
-        const ambient = new Audio('https://raw.githubusercontent.com/razvantirboaca/firecircle/main/public/staring-at-the-night-sky.mp3');
+        const ambient = new Audio('https://github.com/razvantirboaca/firecircle/raw/refs/heads/main/public/staring-at-the-night-sky.mp3');
         ambient.loop = true;
         ambient.volume = 0.25;
 
