@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { db } from './firebase';
 import { doc, updateDoc, increment, getDoc, setDoc, addDoc, collection, serverTimestamp, query, orderBy, onSnapshot } from 'firebase/firestore';
 import './index.css';
+import { franc } from 'franc';
 import { Analytics } from '@vercel/analytics/react';
 
 export default function Circle() {
@@ -10,6 +11,10 @@ export default function Circle() {
   const [embers, setEmbers] = useState([]);
   const [showSoulCloud, setShowSoulCloud] = useState(false);
   const [glowingId, setGlowingId] = useState(null);
+  const langCode =
+    franc(message.trim(), {
+      whitelist: ['ron', 'ita', 'spa', 'eng', 'fra', 'deu'],
+    }) || 'und';
 
   // Submit message to Firestore
   const handleSubmit = async (e) => {
@@ -18,6 +23,7 @@ export default function Circle() {
       await addDoc(collection(db, 'embers'), {
         text: message.trim(),
         createdAt: serverTimestamp(),
+        lang: langCode,
         reactions: {
           fire: 0,
           heart: 0,
@@ -205,7 +211,7 @@ export default function Circle() {
                       ambient
                         .play()
                         .then(() => {
-                          handleSpeak(ember.text, ambient);
+                          handleSpeak(ember.text, ambient, ember.lang || 'en');
                         })
                         .catch(() => {
                           console.warn('Ambient blocked');
