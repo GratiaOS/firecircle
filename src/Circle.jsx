@@ -173,15 +173,29 @@ export default function Circle() {
 
   function SoulCloud() {
     return (
-      <div className="pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-b from-gray-900 to-black">
-        <svg width="100%" height="100%" viewBox="0 0 800 600" className="cloud-animation">
+      <div className="pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-b from-black via-gray-900 to-gray-950">
+        <svg width="100%" height="100%" viewBox="0 0 800 600" className="cloud-animation absolute">
           <defs>
-            <radialGradient id="cloudGradient" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stopColor="#fff" stopOpacity="0.5" />
+            <radialGradient id="soulCore" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stopColor="#fff8dc" stopOpacity="1" />
               <stop offset="100%" stopColor="#fcd34d" stopOpacity="0" />
             </radialGradient>
+            <radialGradient id="sparkle" cx="50%" cy="50%" r="30%">
+              <stop offset="0%" stopColor="#ffffff" stopOpacity="0.8" />
+              <stop offset="100%" stopColor="#facc15" stopOpacity="0" />
+            </radialGradient>
           </defs>
-          <circle cx="400" cy="300" r="150" fill="url(#cloudGradient)" className="transition-all duration-1000 ease-out" />
+          <circle cx="400" cy="300" r="150" fill="url(#soulCore)" className="animate-pulse opacity-80" />
+          {[...Array(20)].map((_, i) => (
+            <circle
+              key={i}
+              cx={Math.random() * 800}
+              cy={Math.random() * 600}
+              r={Math.random() * 2 + 1}
+              fill="url(#sparkle)"
+              className="animate-ping"
+            />
+          ))}
         </svg>
       </div>
     );
@@ -220,7 +234,14 @@ export default function Circle() {
           <ul className="space-y-3">
             {embers.map((ember) => (
               <li key={ember.id} className="bg-amber-50 text-amber-800 p-4 rounded shadow-sm border border-amber-200">
-                <p className={glowingId === ember.text ? 'glow' : ''}>{ember.text}</p>
+                <p
+                  className={`whitespace-pre-wrap transition-all duration-1000 ease-out transform ${
+                    glowingId === ember.text
+                      ? 'animate-pulse text-amber-600 scale-105 shadow-md shadow-amber-300'
+                      : 'hover:scale-[1.02] hover:text-amber-700'
+                  }`}>
+                  {ember.text}
+                </p>
 
                 {translations[ember.id] && <p className="mt-2 text-sm italic text-amber-500">{translations[ember.id]}</p>}
 
