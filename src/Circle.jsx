@@ -222,6 +222,8 @@ export default function Circle() {
               <li key={ember.id} className="bg-amber-50 text-amber-800 p-4 rounded shadow-sm border border-amber-200">
                 <p className={glowingId === ember.text ? 'glow' : ''}>{ember.text}</p>
 
+                {translations[ember.id] && <p className="mt-2 text-sm italic text-amber-500">{translations[ember.id]}</p>}
+
                 {ember.createdAt?.seconds && (
                   <p className="text-xs text-amber-500 mt-2">{new Date(ember.createdAt.seconds * 1000).toLocaleString()}</p>
                 )}
@@ -253,8 +255,6 @@ export default function Circle() {
                       ✨ Translate
                     </button>
                   </div>
-
-                  {translations[ember.id] && <p className="mt-2 text-sm italic text-amber-500">{translations[ember.id]}</p>}
 
                   <div className="flex gap-3">
                     <button onClick={() => handleReact(ember.id, 'fire')}>🔥 {ember.reactions?.fire || 0}</button>
