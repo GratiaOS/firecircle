@@ -15,6 +15,7 @@ export default function Circle() {
     franc(message.trim(), {
       whitelist: ['ron', 'ita', 'spa', 'eng', 'fra', 'deu'],
     }) || 'und';
+  const [translations, setTranslations] = useState({});
 
   // Submit message to Firestore
   const handleSubmit = async (e) => {
@@ -101,17 +102,18 @@ export default function Circle() {
     }
   };
 
-  const handleSpeak = (text, ambient) => {
+  const handleSpeak = (text, ambient, lang = 'en') => {
     if ('speechSynthesis' in window) {
       const synth = window.speechSynthesis;
 
       const speak = () => {
         const voices = synth.getVoices();
         const sacredVoice =
+          voices.find((v) => v.lang && v.lang.toLowerCase().startsWith(lang)) ||
           voices.find((v) => v.name === 'Google UK English Female') ||
           voices.find((v) => v.name === 'Shelley (English (United Kingdom))') ||
-          voices.find((v) => v.name === 'Samantha') || // soft fallback
-          voices[0]; // absolute fallback
+          voices.find((v) => v.name === 'Samantha') ||
+          voices[0];
 
         const rate = 0.85;
         const pitch = text.length < 80 ? 1.2 : text.length > 200 ? 0.95 : 1;
@@ -143,6 +145,29 @@ export default function Circle() {
       } else {
         speak();
       }
+    }
+  };
+
+  const handleTranslate = async (emberId, text, sourceLang = 'auto', targetLang = 'en') => {
+    try {
+      const response = await fetch('/api/translate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          text,
+          sourceLang,
+          targetLang,
+        }),
+      });
+      const result = await response.json().catch(() => ({}));
+      if (result.translation) {
+        setTranslations((prev) => ({
+          ...prev,
+          [emberId]: result.translation,
+        }));
+      }
+    } catch (err) {
+      console.error('Translation failed', err);
     }
   };
 
@@ -202,25 +227,34 @@ export default function Circle() {
                 )}
 
                 <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
-                  <button
-                    onClick={() => {
-                      const ambient = new Audio('https://firecircle.space/staring-at-the-night-sky.mp3');
-                      ambient.loop = true;
-                      ambient.volume = 0.25;
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => {
+                        const ambient = new Audio('https://firecircle.space/staring-at-the-night-sky.mp3');
+                        ambient.loop = true;
+                        ambient.volume = 0.25;
 
-                      ambient
-                        .play()
-                        .then(() => {
-                          handleSpeak(ember.text, ambient, ember.lang || 'en');
-                        })
-                        .catch(() => {
-                          console.warn('Ambient blocked');
-                          handleSpeak(ember.text); // still whisper without ambient
-                        });
-                    }}
-                    className="text-sm text-amber-700 hover:underline">
-                    🔊 Firewhisper
-                  </button>
+                        ambient
+                          .play()
+                          .then(() => {
+                            handleSpeak(ember.text, ambient, ember.lang || 'en');
+                          })
+                          .catch(() => {
+                            console.warn('Ambient blocked');
+                            handleSpeak(ember.text, null, ember.lang || 'en');
+                          });
+                      }}
+                      className="text-sm text-amber-700 hover:underline">
+                      🔊 Firewhisper
+                    </button>
+                    <button
+                      onClick={() => handleTranslate(ember.id, ember.text, ember.lang || 'auto', 'en')}
+                      className="text-sm text-amber-600 hover:underline">
+                      ✨ Translate
+                    </button>
+                  </div>
+
+                  {translations[ember.id] && <p className="mt-2 text-sm italic text-amber-500">{translations[ember.id]}</p>}
 
                   <div className="flex gap-3">
                     <button onClick={() => handleReact(ember.id, 'fire')}>🔥 {ember.reactions?.fire || 0}</button>
