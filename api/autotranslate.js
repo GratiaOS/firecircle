@@ -3,6 +3,16 @@ import { OpenAI } from 'openai';
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 export default async function handler(req, res) {
+  // 🔐 Enable CORS
+  res.setHeader('Access-Control-Allow-Origin', '*'); // or set to 'http://localhost:5173' for tighter security
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  // Handle preflight OPTIONS request
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
   try {
     const { text } = req.body;
 
@@ -19,7 +29,6 @@ export default async function handler(req, res) {
     });
 
     const translatedText = completion.choices[0].message.content;
-
     res.status(200).json({ translatedText });
   } catch (err) {
     console.error('AutoTranslate API error:', err.message);
