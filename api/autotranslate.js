@@ -4,7 +4,7 @@ const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 export default async function handler(req, res) {
   // 🔐 Enable CORS
-  res.setHeader('Access-Control-Allow-Origin', '*'); // or set to 'http://localhost:5173' for tighter security
+  res.setHeader('Access-Control-Allow-Origin', 'http://localhost:5173');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
