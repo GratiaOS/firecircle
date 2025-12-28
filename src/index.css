@@ -1,6 +1,23 @@
+@import '@gratiaos/tokens/theme.css';
+@import '@gratiaos/ui/styles/base.css' layer(components);
 @import 'tailwindcss';
 
 @layer components {
+  :root {
+    color-scheme: light;
+    /* Firecircle accents (local-only) */
+    --fc-ink-hot: color-mix(in oklab, var(--color-accent) 72%, var(--color-text));
+    --fc-ink: color-mix(in oklab, var(--color-text) 92%, black);
+    --fc-ember-glow: 0 0 14px color-mix(in oklab, var(--color-accent) 26%, transparent);
+  }
+
+  body {
+    margin: 0;
+    font-family: var(--font-ui, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Arial);
+    color: var(--color-text);
+    background: var(--color-surface);
+  }
+
   @keyframes fade {
     0% {
       opacity: 0;
@@ -54,6 +71,337 @@
     }
     100% {
       text-shadow: 0 0 12px rgba(252, 211, 77, 1), 0 0 24px rgba(252, 211, 77, 0.8);
+    }
+  }
+
+  @keyframes fcPulse {
+    0% {
+      opacity: 0.7;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1.02);
+    }
+    100% {
+      opacity: 0.8;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes fcPing {
+    0% {
+      opacity: 0.2;
+      transform: scale(0.9);
+    }
+    70% {
+      opacity: 0.8;
+      transform: scale(1);
+    }
+    100% {
+      opacity: 0;
+      transform: scale(1.2);
+    }
+  }
+
+  .fc-page {
+    min-height: 100vh;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2.5rem;
+    background: radial-gradient(1200px 600px at 20% -10%, color-mix(in oklab, var(--color-accent) 18%, transparent), transparent 60%),
+      radial-gradient(900px 600px at 80% 0%, color-mix(in oklab, var(--color-warning) 14%, transparent), transparent 70%), var(--color-surface);
+  }
+
+  .fc-landing {
+    position: relative;
+    text-align: center;
+  }
+
+  .fc-hero {
+    max-width: 42rem;
+  }
+
+  .fc-title {
+    font-size: clamp(2.2rem, 3vw + 1.2rem, 3.2rem);
+    font-weight: 600;
+    color: var(--fc-ink-hot);
+    text-shadow: 0 1px 0 color-mix(in oklab, var(--color-text) 8%, transparent);
+    margin-bottom: 1.5rem;
+  }
+
+  .fc-lede {
+    font-size: 1.05rem;
+    color: var(--color-muted);
+    margin-bottom: 2rem;
+    line-height: 1.7;
+  }
+
+  .fc-footer {
+    position: absolute;
+    bottom: 1rem;
+    font-size: 0.75rem;
+    color: var(--color-muted);
+    opacity: 0.7;
+  }
+
+  .fc-button {
+    border: 0;
+    border-radius: var(--radius-pill);
+    padding: 0.6rem 1.6rem;
+    font-weight: 600;
+    color: var(--color-on-accent);
+    background: var(--color-accent);
+    box-shadow: var(--shadow-depth-1);
+    cursor: pointer;
+    transition: transform 160ms ease, box-shadow 220ms ease, background 200ms ease;
+  }
+
+  .fc-button-lg[data-ui='button'] {
+    padding: 0.75rem 1.4rem;
+    font-size: 1rem;
+  }
+
+  .fc-button:hover {
+    background: color-mix(in oklab, var(--color-accent) 86%, white);
+    transform: translateY(-1px);
+  }
+
+  .fc-button--block {
+    width: 100%;
+    margin-top: 0.8rem;
+  }
+
+  .fc-form {
+    width: 100%;
+    max-width: 32rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+  }
+
+  .fc-heading {
+    text-align: center;
+    font-size: 2rem;
+    font-weight: 600;
+    color: var(--fc-ink-hot);
+  }
+
+  .fc-textarea {
+    width: 100%;
+    height: 10rem;
+    padding: 1rem;
+    border-radius: 0.9rem;
+    border: 1px solid var(--color-border);
+    background: color-mix(in oklab, var(--color-surface) 92%, white);
+    color: var(--color-text);
+    font: inherit;
+    resize: none;
+    outline: none;
+    box-shadow: var(--shadow-depth-0);
+    transition: border 200ms ease, box-shadow 200ms ease;
+  }
+
+  .fc-textarea:focus {
+    border-color: color-mix(in oklab, var(--color-accent) 70%, var(--color-border));
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-accent) 20%, transparent);
+  }
+
+  .fc-error {
+    font-size: 0.9rem;
+    color: color-mix(in oklab, var(--color-text) 80%, var(--color-warning));
+  }
+
+  .fc-muted {
+    color: var(--color-muted);
+  }
+
+  .fc-thanks {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+  }
+
+  .fc-thanks-card {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+  }
+
+  .fc-thanks-title {
+    font-size: 1.6rem;
+    color: var(--color-text);
+    font-weight: 600;
+  }
+
+  .fc-embers {
+    width: 100%;
+    max-width: 48rem;
+  }
+
+  .fc-embers-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .fc-ember {
+    color: var(--color-text);
+    background: color-mix(in oklab, var(--color-surface) 88%, white);
+    border: 1px solid color-mix(in oklab, var(--color-border) 70%, transparent);
+    border-radius: 1.1rem;
+    padding: 1rem 1.1rem;
+    box-shadow: 0 10px 28px color-mix(in oklab, var(--color-inverse) 10%, transparent);
+    transition: transform 180ms ease, box-shadow 220ms ease, border-color 220ms ease, background 220ms ease;
+  }
+
+  .fc-ember:hover {
+    transform: translateY(-1px);
+    border-color: color-mix(in oklab, var(--color-accent) 22%, var(--color-border));
+    box-shadow: 0 14px 36px color-mix(in oklab, var(--color-inverse) 14%, transparent);
+    background: color-mix(in oklab, var(--color-surface) 84%, white);
+  }
+
+  .fc-ember-text {
+    white-space: pre-wrap;
+    display: inline-block;
+    transition: transform 240ms ease, color 200ms ease;
+    color: var(--fc-ink);
+  }
+
+  .fc-ember-text--glow {
+    animation: fcPulse 1.6s ease-in-out infinite;
+    color: var(--fc-ink-hot);
+    text-shadow: var(--fc-ember-glow);
+  }
+
+  .fc-ember-text--hover:hover {
+    transform: translateY(-1px);
+    color: color-mix(in oklab, var(--color-text) 92%, var(--color-accent));
+  }
+
+  .fc-ember-translation {
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+    font-style: italic;
+    color: var(--color-muted);
+  }
+
+  .fc-ember-time {
+    margin-top: 0.4rem;
+    font-size: 0.75rem;
+    color: var(--color-muted);
+  }
+
+  .fc-ember-actions {
+    margin-top: 0.85rem;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.8rem;
+  }
+
+  .fc-ember-actions-main {
+    display: flex;
+    gap: 0.8rem;
+  }
+
+  .fc-ember-reactions {
+    display: flex;
+    gap: 0.25rem;
+  }
+
+  .fc-action-btn {
+    color: var(--color-muted);
+    font: inherit;
+    cursor: pointer;
+    transition: color 180ms ease;
+  }
+
+  .fc-reaction-badge[data-ui='badge'] {
+    cursor: pointer;
+    color: var(--color-muted);
+    transition: color 180ms ease, background 180ms ease, box-shadow 220ms ease;
+  }
+
+  .fc-reaction-badge[data-ui='badge'] [data-slot='label'] {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .fc-reaction-badge[data-ui='badge'][data-active='true'] {
+    color: color-mix(in oklab, var(--color-text) 82%, var(--color-accent) 18%);
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--color-accent) 22%, transparent);
+    transition-delay: 120ms;
+  }
+
+  .fc-reaction-badge[data-ui='badge']:hover {
+    color: var(--color-text);
+  }
+
+  .fc-action-btn[data-ui='button'] {
+    font-size: 0.85rem;
+    padding-inline: 0.4rem;
+  }
+
+  .fc-action-btn:hover {
+    color: var(--color-text);
+  }
+
+  .fc-soulcloud {
+    pointer-events: none;
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(1200px 600px at 50% 40%, color-mix(in oklab, var(--color-inverse) 70%, transparent), transparent 70%),
+      color-mix(in oklab, var(--color-inverse) 92%, black);
+  }
+
+  .fc-soulcloud-svg {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+  }
+
+  .fc-pulse {
+    animation: fcPulse 1.8s ease-in-out infinite;
+    opacity: 0.85;
+  }
+
+  .fc-ping {
+    animation: fcPing 1.6s ease-out infinite;
+  }
+
+  @media (max-width: 720px) {
+    .fc-page {
+      padding: 1.5rem;
+      gap: 2rem;
+    }
+
+    .fc-hero {
+      max-width: 32rem;
+    }
+
+    .fc-embers {
+      margin-top: 1rem;
+    }
+
+    .fc-ember-actions {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .fc-ember {
+      padding: 0.9rem 0.95rem;
+      border-radius: 1rem;
     }
   }
 }

@@ -11,6 +11,13 @@
       name="description"
       content="A sacred space for soul expression, silence, and visual reflection. Come when you're called. Stay as long as you need." />
 
+    <script>
+      (() => {
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.dataset.skinId = prefersDark ? 'MOON' : 'SUN';
+      })();
+    </script>
+
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://firecircle.space/" />

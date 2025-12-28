@@ -1,16 +1,37 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { db } from './firebase';
 import { doc, updateDoc, increment, getDoc, setDoc, addDoc, collection, serverTimestamp, query, orderBy, onSnapshot } from 'firebase/firestore';
+import { Badge, Button, Card } from '@gratiaos/ui';
+import { Icon, Heart, Leaf, Sparkles } from '@gratiaos/icons';
 import './index.css';
 import { franc } from 'franc';
-import { Analytics } from '@vercel/analytics/react';
+
+const MAX_MESSAGE_CHARS = 500;
+const MAX_TRANSLATE_CHARS = 800;
+const SUBMIT_COOLDOWN_MS = 4000;
+const REACTION_COOLDOWN_MS = 900;
+const TRANSLATE_COOLDOWN_MS = 12000;
+
+function FireIcon(props) {
+  return (
+    <Icon {...props}>
+      <path d="M12 2C9 5 5 8 5 13a7 7 0 0 0 14 0c0-5-4-8-7-11z" />
+      <path d="M12 9a4 4 0 0 0-4 4 4 4 0 0 0 8 0 4 4 0 0 0-4-4z" />
+    </Icon>
+  );
+}
 
 export default function Circle() {
   const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [embers, setEmbers] = useState([]);
   const [showSoulCloud, setShowSoulCloud] = useState(false);
   const [glowingId, setGlowingId] = useState(null);
+  const lastSubmitAtRef = useRef(0);
+  const lastReactionAtRef = useRef(new Map());
+  const lastTranslateAtRef = useRef(new Map());
+  const translateInFlightRef = useRef(new Set());
   const langCode =
     franc(message.trim(), {
       whitelist: ['ron', 'ita', 'spa', 'eng', 'fra', 'deu'],
@@ -20,9 +41,23 @@ export default function Circle() {
   // Submit message to Firestore
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (message.trim() !== '') {
+    const trimmed = message.trim();
+    if (!trimmed) return;
+    if (trimmed.length > MAX_MESSAGE_CHARS) {
+      setError(`Keep it under ${MAX_MESSAGE_CHARS} characters.`);
+      return;
+    }
+    const now = Date.now();
+    if (now - lastSubmitAtRef.current < SUBMIT_COOLDOWN_MS) {
+      setError('Take a breath. Try again in a moment.');
+      return;
+    }
+    lastSubmitAtRef.current = now;
+    setError('');
+
+    if (trimmed !== '') {
       await addDoc(collection(db, 'embers'), {
-        text: message.trim(),
+        text: trimmed,
         createdAt: serverTimestamp(),
         lang: langCode,
         reactions: {
@@ -67,6 +102,12 @@ export default function Circle() {
   };
 
   const handleReact = async (emberId, type) => {
+    const key = `${emberId}:${type}`;
+    const now = Date.now();
+    const last = lastReactionAtRef.current.get(key) || 0;
+    if (now - last < REACTION_COOLDOWN_MS) return;
+    lastReactionAtRef.current.set(key, now);
+
     const emberRef = doc(db, 'embers', emberId);
     const emberSnap = await getDoc(emberRef);
 
@@ -149,6 +190,15 @@ export default function Circle() {
   };
 
   const handleTranslate = async (emberId, text, sourceLang = 'auto', targetLang = 'en') => {
+    if (translations[emberId]) return;
+    if (!text || text.length > MAX_TRANSLATE_CHARS) return;
+    if (translateInFlightRef.current.has(emberId)) return;
+    const now = Date.now();
+    const last = lastTranslateAtRef.current.get(emberId) || 0;
+    if (now - last < TRANSLATE_COOLDOWN_MS) return;
+    lastTranslateAtRef.current.set(emberId, now);
+    translateInFlightRef.current.add(emberId);
+
     try {
       const response = await fetch('/api/translate', {
         method: 'POST',
@@ -168,13 +218,15 @@ export default function Circle() {
       }
     } catch (err) {
       console.error('Translation failed', err);
+    } finally {
+      translateInFlightRef.current.delete(emberId);
     }
   };
 
   function SoulCloud() {
     return (
-      <div className="pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-b from-black via-gray-900 to-gray-950">
-        <svg width="100%" height="100%" viewBox="0 0 800 600" className="cloud-animation absolute">
+      <div className="fc-soulcloud">
+        <svg width="100%" height="100%" viewBox="0 0 800 600" className="cloud-animation fc-soulcloud-svg">
           <defs>
             <radialGradient id="soulCore" cx="50%" cy="50%" r="50%">
               <stop offset="0%" stopColor="#fff8dc" stopOpacity="1" />
@@ -185,16 +237,9 @@ export default function Circle() {
               <stop offset="100%" stopColor="#facc15" stopOpacity="0" />
             </radialGradient>
           </defs>
-          <circle cx="400" cy="300" r="150" fill="url(#soulCore)" className="animate-pulse opacity-80" />
+          <circle cx="400" cy="300" r="150" fill="url(#soulCore)" className="fc-pulse" />
           {[...Array(20)].map((_, i) => (
-            <circle
-              key={i}
-              cx={Math.random() * 800}
-              cy={Math.random() * 600}
-              r={Math.random() * 2 + 1}
-              fill="url(#sparkle)"
-              className="animate-ping"
-            />
+            <circle key={i} cx={Math.random() * 800} cy={Math.random() * 600} r={Math.random() * 2 + 1} fill="url(#sparkle)" className="fc-ping" />
           ))}
         </svg>
       </div>
@@ -202,56 +247,54 @@ export default function Circle() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-amber-100 via-orange-50 to-white flex flex-col items-center justify-center p-8 space-y-10">
+    <div className="fc-page fc-circle">
       {!submitted ? (
-        <form onSubmit={handleSubmit} className="w-full max-w-md">
-          <h2 className="text-3xl font-bold text-amber-700 mb-4 text-center">Enter the Circle</h2>
+        <form onSubmit={handleSubmit} className="fc-form">
+          <h2 className="fc-heading">Enter the Circle</h2>
           <textarea
             value={message}
-            onChange={(e) => setMessage(e.target.value)}
+            onChange={(e) => {
+              const next = e.target.value;
+              setMessage(next);
+              if (error && next.trim().length <= MAX_MESSAGE_CHARS) {
+                setError('');
+              }
+            }}
             placeholder="What wants to be seen today?"
-            className="w-full h-40 p-4 rounded-md border border-amber-300 focus:outline-none focus:ring-2 focus:ring-amber-500"></textarea>
-          <button type="submit" className="mt-4 w-full bg-amber-600 hover:bg-amber-700 text-white py-2 rounded-md shadow">
+            maxLength={MAX_MESSAGE_CHARS}
+            className="fc-textarea"></textarea>
+          {error && <p className="fc-error">{error}</p>}
+          <Button type="submit" tone="accent" variant="solid" className="fc-button-lg fc-button--block">
             Share in the Circle
-          </button>
+          </Button>
         </form>
       ) : (
-        <div>
-          <div className="text-center space-y-4">
-            <h2 className="text-2xl text-amber-700 font-semibold">Thank you for sharing ✨</h2>
-            <p className="text-amber-600">Your voice has joined the fire.</p>
-            <button onClick={resetForm} className="mt-4 bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-md shadow">
+        <div className="fc-thanks">
+          <Card variant="elev" padding="lg" className="fc-thanks-card">
+            <h2 className="fc-thanks-title">Thank you for sharing ✨</h2>
+            <p className="fc-muted">Your voice has joined the fire.</p>
+            <Button tone="accent" variant="solid" onClick={resetForm}>
               Share another
-            </button>
-          </div>
+            </Button>
+          </Card>
           {showSoulCloud && <SoulCloud />}
         </div>
       )}
 
       {embers.length > 0 && (
-        <div className="w-full max-w-2xl mt-10">
-          <h3 className="text-xl font-semibold text-amber-700 mb-4 text-center">Shared Embers</h3>
-          <ul className="space-y-3">
+        <div className="fc-embers">
+          <ul className="fc-embers-list">
             {embers.map((ember) => (
-              <li key={ember.id} className="bg-amber-50 text-amber-800 p-4 rounded shadow-sm border border-amber-200">
-                <p
-                  className={`whitespace-pre-wrap transition-all duration-1000 ease-out transform ${
-                    glowingId === ember.text
-                      ? 'animate-pulse text-amber-600 scale-105 shadow-md shadow-amber-300'
-                      : 'hover:scale-[1.02] hover:text-amber-700'
-                  }`}>
-                  {ember.text}
-                </p>
+              <Card key={ember.id} as="li" variant="outline" padding="md" className="fc-ember">
+                <p className={`fc-ember-text ${glowingId === ember.text ? 'fc-ember-text--glow' : 'fc-ember-text--hover'}`}>{ember.text}</p>
 
-                {translations[ember.id] && <p className="mt-2 text-sm italic text-amber-500">{translations[ember.id]}</p>}
+                {translations[ember.id] && <p className="fc-ember-translation">{translations[ember.id]}</p>}
 
-                {ember.createdAt?.seconds && (
-                  <p className="text-xs text-amber-500 mt-2">{new Date(ember.createdAt.seconds * 1000).toLocaleString()}</p>
-                )}
+                {ember.createdAt?.seconds && <p className="fc-ember-time">{new Date(ember.createdAt.seconds * 1000).toLocaleString()}</p>}
 
-                <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
-                  <div className="flex gap-3">
-                    <button
+                <div className="fc-ember-actions">
+                  <div className="fc-ember-actions-main">
+                    <Button
                       onClick={() => {
                         const ambient = new Audio('https://firecircle.space/staring-at-the-night-sky.mp3');
                         ambient.loop = true;
@@ -267,29 +310,82 @@ export default function Circle() {
                             handleSpeak(ember.text, null, ember.lang || 'en');
                           });
                       }}
-                      className="text-sm text-amber-700 hover:underline">
+                      variant="ghost"
+                      tone="accent"
+                      density="snug"
+                      className="fc-action-btn">
                       🔊 Firewhisper
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                       onClick={() => handleTranslate(ember.id, ember.text, ember.lang || 'auto', 'en')}
-                      className="text-sm text-amber-600 hover:underline">
+                      variant="ghost"
+                      tone="accent"
+                      density="snug"
+                      className="fc-action-btn">
                       ✨ Translate
-                    </button>
+                    </Button>
                   </div>
 
-                  <div className="flex gap-3">
-                    <button onClick={() => handleReact(ember.id, 'fire')}>🔥 {ember.reactions?.fire || 0}</button>
-                    <button onClick={() => handleReact(ember.id, 'heart')}>❤️ {ember.reactions?.heart || 0}</button>
-                    <button onClick={() => handleReact(ember.id, 'leaf')}>🌿 {ember.reactions?.leaf || 0}</button>
-                    <button onClick={() => handleReact(ember.id, 'star')}>✨ {ember.reactions?.star || 0}</button>
+                  <div className="fc-ember-reactions fc-reaction-badge" role="group" aria-label="Reactions">
+                    <Badge
+                      as="button"
+                      type="button"
+                      variant="subtle"
+                      tone="accent"
+                      size="md"
+                      className="fc-reaction-badge"
+                      leading={<FireIcon size="sm" />}
+                      data-active={(ember.reactions?.fire || 0) > 0}
+                      aria-pressed={(ember.reactions?.fire || 0) > 0}
+                      onClick={() => handleReact(ember.id, 'fire')}>
+                      {ember.reactions?.fire || 0}
+                    </Badge>
+                    <Badge
+                      as="button"
+                      type="button"
+                      variant="subtle"
+                      tone="accent"
+                      size="md"
+                      className="fc-reaction-badge"
+                      leading={<Heart size="sm" />}
+                      data-active={(ember.reactions?.heart || 0) > 0}
+                      aria-pressed={(ember.reactions?.heart || 0) > 0}
+                      onClick={() => handleReact(ember.id, 'heart')}>
+                      {ember.reactions?.heart || 0}
+                    </Badge>
+                    <Badge
+                      as="button"
+                      type="button"
+                      variant="subtle"
+                      tone="accent"
+                      size="md"
+                      className="fc-reaction-badge"
+                      leading={<Leaf size="sm" />}
+                      data-active={(ember.reactions?.leaf || 0) > 0}
+                      aria-pressed={(ember.reactions?.leaf || 0) > 0}
+                      onClick={() => handleReact(ember.id, 'leaf')}>
+                      {ember.reactions?.leaf || 0}
+                    </Badge>
+                    <Badge
+                      as="button"
+                      type="button"
+                      variant="subtle"
+                      tone="accent"
+                      size="md"
+                      className="fc-reaction-badge"
+                      leading={<Sparkles size="sm" />}
+                      data-active={(ember.reactions?.star || 0) > 0}
+                      aria-pressed={(ember.reactions?.star || 0) > 0}
+                      onClick={() => handleReact(ember.id, 'star')}>
+                      {ember.reactions?.star || 0}
+                    </Badge>
                   </div>
                 </div>
-              </li>
+              </Card>
             ))}
           </ul>
         </div>
       )}
-      <Analytics />
     </div>
   );
 }
