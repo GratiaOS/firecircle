@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <style>
+    /* Culoarea pentru Light Mode (un gri cald, ca asfaltul uscat) */
+    .skate { fill: #292524; } 
+    
+    /* Culoarea pentru Dark Mode (un alb-crem care se asortează cu UI-ul tău) */
+    @media (prefers-color-scheme: dark) {
+      .skate { fill: #f5f5f4; }
+    }
+  </style>
+  
+  <g transform="rotate(-15 16 16)">
+    <rect x="2" y="13" width="28" height="4" rx="2" class="skate" />
+    
+    <circle cx="8" cy="21" r="3" class="skate" />
+    <circle cx="24" cy="21" r="3" class="skate" />
+  </g>
+</svg>
