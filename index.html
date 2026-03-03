@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -7,14 +8,25 @@
     <!-- Primary Meta Tags -->
     <title>Firecircle — Harmony in Creation</title>
     <meta name="title" content="Firecircle — Harmony in Creation" />
-    <meta
-      name="description"
+    <meta name="description"
       content="A sacred space for soul expression, silence, and visual reflection. Come when you're called. Stay as long as you need." />
 
     <script>
       (() => {
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        document.documentElement.dataset.skinId = prefersDark ? 'MOON' : 'SUN';
+        const darkModeQuery = window.matchMedia('(prefers-color-scheme: dark)');
+
+        // Set theme (initial and on change)
+        const setTheme = (isDark) => {
+          document.documentElement.dataset.skinId = isDark ? 'MOON' : 'SUN';
+        };
+
+        // Set initial theme
+        setTheme(darkModeQuery.matches);
+
+        // Listen for OS theme changes (no refresh needed)
+        darkModeQuery.addEventListener('change', (e) => {
+          setTheme(e.matches);
+        });
       })();
     </script>
 
@@ -22,7 +34,8 @@
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://firecircle.space/" />
     <meta property="og:title" content="Firecircle — Harmony in Creation" />
-    <meta property="og:description" content="Speak your truth. Let the sky drift it back. No metrics. No noise. Just presence." />
+    <meta property="og:description"
+      content="Speak your truth. Let the sky drift it back. No metrics. No noise. Just presence." />
     <meta property="og:image" content="https://firecircle.space/og-firecircle.jpg" />
 
     <!-- Twitter -->
@@ -32,8 +45,10 @@
     <meta name="twitter:description" content="Speak. Witness. Drift. Firecircle is not social, it’s sacred." />
     <meta name="twitter:image" content="https://firecircle.space/og-firecircle.jpg" />
   </head>
+
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
+
 </html>
