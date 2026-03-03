@@ -1,16 +1,18 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Firecircle">
-  <defs>
-    <linearGradient id="flame" x1="0%" x2="100%" y1="0%" y2="100%">
-      <stop offset="0%" stop-color="#f97316"/>
-      <stop offset="50%" stop-color="#f59e0b"/>
-      <stop offset="100%" stop-color="#fde68a"/>
-    </linearGradient>
-    <radialGradient id="ember" cx="50%" cy="50%" r="60%">
-      <stop offset="0%" stop-color="#fff7ed" stop-opacity="0.9"/>
-      <stop offset="100%" stop-color="#fb923c" stop-opacity="0.2"/>
-    </radialGradient>
-  </defs>
-  <rect width="64" height="64" rx="16" fill="#0b0b0f"/>
-  <circle cx="32" cy="36" r="18" fill="url(#ember)"/>
-  <path fill="url(#flame)" d="M32 10c-6 7-12 13-12 22 0 8 6 14 12 14s12-6 12-14C44 23 38 17 32 10zm-2 24c0-4 3-6 3-10 2 3 6 6 6 11 0 4-3 8-7 8s-7-4-7-9z"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <style>
+    /* Culoarea pentru Light Mode (un gri cald, ca asfaltul uscat) */
+    .skate { fill: #292524; } 
+    
+    /* Culoarea pentru Dark Mode (un alb-crem care se asortează cu UI-ul tău) */
+    @media (prefers-color-scheme: dark) {
+      .skate { fill: #f5f5f4; }
+    }
+  </style>
+  
+  <g transform="rotate(-15 16 16)">
+    <rect x="2" y="13" width="28" height="4" rx="2" class="skate" />
+    
+    <circle cx="8" cy="21" r="3" class="skate" />
+    <circle cx="24" cy="21" r="3" class="skate" />
+  </g>
 </svg>
